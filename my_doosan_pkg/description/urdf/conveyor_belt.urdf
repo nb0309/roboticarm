@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+
+<robot xmlns:xacro="http://ros.org/wiki/xacro"
+       name="conveyor">
+
+    <gazebo>
+        <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+            <robotNamespace>/conveyor</robotNamespace>
+        </plugin>
+    </gazebo>
+
+
+    <link name="world"/>
+
+     <xacro:property name="conveyor_width" value="0.67"/>
+     <xacro:property name="conveyor_length" value="150.0"/>
+     <xacro:property name="conveyor_mass" value="100.0"/>
+     <xacro:property name="conveyor_height" value="0.05"/>
+     
+     <xacro:property name="conveyor_heigh_world" value="0.5"/>
+
+
+
+    <link name="conveyor_link">
+        <visual>
+            <origin xyz="${conveyor_length/2-80} 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="${conveyor_length} ${conveyor_width} ${conveyor_height}"/>
+            </geometry>
+            <material name="Black">
+                <color rgba="0 0.0 0.0 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="${conveyor_length/2-10} 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="${conveyor_length} ${conveyor_width} ${conveyor_height}"/>
+            </geometry>
+        </collision>
+        <inertial>
+            <mass value="${conveyor_mass}"/>
+            <inertia ixx="${(conveyor_mass / 12) * (conveyor_width * conveyor_width + conveyor_height * conveyor_height) }" ixy="0.0" ixz="0.0" iyy="${(conveyor_mass / 12) * (conveyor_length * conveyor_length + conveyor_height * conveyor_height) }" iyz="0.0" izz="${(conveyor_mass / 12) * (conveyor_length * conveyor_length + conveyor_width * conveyor_width) }"/>
+        </inertial>
+    </link>
+
+    <gazebo reference="conveyor_link">
+        <material>Gazebo/Black</material>
+        <mu1>1000.0</mu1>
+        <mu2>1000.0</mu2>
+    </gazebo>
+
+    <joint name="world_conveyor_joint" type="prismatic">
+        <origin xyz="0 0 ${conveyor_heigh_world}" rpy="0.0 0.0 0.0"/>
+        <parent link="world" />
+        <child link="conveyor_link" />
+        <axis xyz="1 0 0" />
+        <limit effort="10000" lower="-50.0" upper="50.0" velocity="1000" />
+        <!--<dynamics damping="100.0" />-->
+    </joint>
+
+    <transmission name="tran1">
+        <type>transmission_interface/SimpleTransmission</type>
+        <joint name="world_conveyor_joint">
+            <hardwareInterface>EffortJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="motor1">
+            <hardwareInterface>EffortJointInterface</hardwareInterface>
+            <mechanicalReduction>1</mechanicalReduction>
+        </actuator>
+    </transmission>
+    
+</robot>
+
